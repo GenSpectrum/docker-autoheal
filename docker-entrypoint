@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 set -e
-# shellcheck disable=2039
 set -o pipefail
 
 DOCKER_SOCK=${DOCKER_SOCK:-/var/run/docker.sock}
@@ -44,7 +43,6 @@ docker_curl() {
   "$@"
 }
 
-# shellcheck disable=2039
 get_container_info() {
   local label_filter
   local running_filter
@@ -67,7 +65,6 @@ get_container_info() {
   docker_curl "$url"
 }
 
-# shellcheck disable=2039
 restart_container() {
   local container_id="$1"
   local timeout="$2"
@@ -124,7 +121,6 @@ term_handler() {
   exit 143  # 128 + 15 -- SIGTERM
 }
 
-# shellcheck disable=2039
 trap 'kill $$; term_handler' SIGTERM
 
 if [ "$1" = "autoheal" ]
@@ -149,7 +145,6 @@ then
       jq -r ".[] | select(.Labels[\"autoheal\"] != \"False\") | foreach . as \$CONTAINER([];[]; \$CONTAINER | .Id, .Names[0], .State, ${STOP_TIMEOUT})" | \
       while read -r CONTAINER_ID && read -r CONTAINER_NAME && read -r CONTAINER_STATE && read -r TIMEOUT
     do
-      # shellcheck disable=2039
       CONTAINER_SHORT_ID=${CONTAINER_ID:0:12}
       DATE=$(date +%d-%m-%Y" "%H:%M:%S)
 
