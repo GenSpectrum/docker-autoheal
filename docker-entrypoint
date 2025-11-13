@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 set -e
 # shellcheck disable=2039
@@ -31,11 +31,11 @@ AUTOHEAL_INTERVAL=${AUTOHEAL_INTERVAL:-5}
 AUTOHEAL_DEFAULT_STOP_TIMEOUT=${AUTOHEAL_DEFAULT_STOP_TIMEOUT:-10}
 AUTOHEAL_ONLY_MONITOR_RUNNING=${AUTOHEAL_ONLY_MONITOR_RUNNING:-false}
 
-echo AUTOHEAL_CONTAINER_LABEL=${AUTOHEAL_CONTAINER_LABEL}
-echo AUTOHEAL_START_PERIOD=${AUTOHEAL_START_PERIOD}
-echo AUTOHEAL_INTERVAL=${AUTOHEAL_INTERVAL}
-echo AUTOHEAL_DEFAULT_STOP_TIMEOUT=${AUTOHEAL_DEFAULT_STOP_TIMEOUT}
-echo AUTOHEAL_ONLY_MONITOR_RUNNING=${AUTOHEAL_ONLY_MONITOR_RUNNING}
+echo AUTOHEAL_CONTAINER_LABEL="${AUTOHEAL_CONTAINER_LABEL}"
+echo AUTOHEAL_START_PERIOD="${AUTOHEAL_START_PERIOD}"
+echo AUTOHEAL_INTERVAL="${AUTOHEAL_INTERVAL}"
+echo AUTOHEAL_DEFAULT_STOP_TIMEOUT="${AUTOHEAL_DEFAULT_STOP_TIMEOUT}"
+echo AUTOHEAL_ONLY_MONITOR_RUNNING="${AUTOHEAL_ONLY_MONITOR_RUNNING}"
 
 docker_curl() {
   curl --max-time "${CURL_TIMEOUT}" --no-buffer -s \
@@ -76,18 +76,18 @@ restart_container() {
 }
 
 notify_webhook() {
-  local text="$@"
+  local text="$1"
 
   if [ -n "$WEBHOOK_URL" ]
   then
     # execute webhook requests as background process to prevent healer from blocking
-    curl -s -X POST -H "Content-type: application/json" -d "$(generate_webhook_payload $text)"  "$WEBHOOK_URL"
+    curl -s -X POST -H "Content-type: application/json" -d "$(generate_webhook_payload "$text")"  "$WEBHOOK_URL"
   fi
 
   if [ -n "$APPRISE_URL" ]
   then
     # execute webhook requests as background process to prevent healer from blocking
-    curl -s -X POST -H "Content-type: application/json" -d "$(generate_apprise_payload $text)"  "$APPRISE_URL"
+    curl -s -X POST -H "Content-type: application/json" -d "$(generate_apprise_payload "$text")"  "$APPRISE_URL"
   fi
 }
 
@@ -101,7 +101,7 @@ notify_post_restart_script() {
 
 # https://towardsdatascience.com/proper-ways-to-pass-environment-variables-in-json-for-curl-post-f797d2698bf3
 generate_webhook_payload() {
-  local text="$@"
+  local text="$1"
   cat <<EOF
 {
   "$WEBHOOK_JSON_KEY":"$text"
@@ -110,7 +110,7 @@ EOF
 }
 
 generate_apprise_payload() {
-  local text="$@"
+  local text="$1"
   cat <<EOF
 {
   "title":"Autoheal",
