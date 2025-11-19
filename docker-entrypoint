@@ -4,7 +4,7 @@ set -e
 set -o pipefail
 
 DOCKER_SOCK=${DOCKER_SOCK:-/var/run/docker.sock}
-UNIX_SOCK=""
+UNIX_SOCK=()
 CURL_TIMEOUT=${CURL_TIMEOUT:-30}
 WEBHOOK_URL=${WEBHOOK_URL:-""}
 WEBHOOK_JSON_KEY=${WEBHOOK_JSON_KEY:-"text"}
@@ -15,12 +15,12 @@ case "${DOCKER_SOCK}" in
   "tcp://"*) HTTP_ENDPOINT="$(echo "${DOCKER_SOCK}" | sed 's#tcp://#http://#')"
              ;;
   "tcps://"*) HTTP_ENDPOINT="$(echo "${DOCKER_SOCK}" | sed 's#tcps://#https://#')"
-             CA="--cacert /certs/ca.pem"
-             CLIENT_KEY="--key /certs/client-key.pem"
-             CLIENT_CERT="--cert /certs/client-cert.pem"
+             CA=(--cacert /certs/ca.pem)
+             CLIENT_KEY=(--key /certs/client-key.pem)
+             CLIENT_CERT=(--cert /certs/client-cert.pem)
              ;;
   *)         HTTP_ENDPOINT="http://localhost"
-             UNIX_SOCK="--unix-socket ${DOCKER_SOCK}"
+             UNIX_SOCK=(--unix-socket "${DOCKER_SOCK}")
              ;;
 esac
 
@@ -38,8 +38,8 @@ echo AUTOHEAL_ONLY_MONITOR_RUNNING="${AUTOHEAL_ONLY_MONITOR_RUNNING}"
 
 docker_curl() {
   curl --max-time "${CURL_TIMEOUT}" --no-buffer -s \
-  ${CA} ${CLIENT_KEY} ${CLIENT_CERT} \
-  ${UNIX_SOCK} \
+  "${CA[@]}" "${CLIENT_KEY[@]}" "${CLIENT_CERT[@]}" \
+  "${UNIX_SOCK[@]}" \
   "$@"
 }
 
@@ -125,7 +125,7 @@ trap 'kill $$; term_handler' SIGTERM
 
 if [ "$1" = "autoheal" ]
 then
-  if [ -n "$UNIX_SOCK" ] && ! [ -S "$DOCKER_SOCK" ]
+  if [ "${#UNIX_SOCK[@]}" -gt 0 ] && ! [ -S "$DOCKER_SOCK" ]
   then
     echo "unix socket is currently not available" >&2
     exit 1
